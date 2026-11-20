@@ -38,13 +38,31 @@ export default function App() {
   const [slow, setSlow] = useState(false); // true when the server is slow to answer
 
   // Wake the free server up as soon as the app opens
+
+
+    // Make the phone's Back button move inside the app instead of leaving it
+  const go = (next) => {
+    setView(next);
+    const onPage = window.history.state && window.history.state.tula === "page";
+    if (!onPage) window.history.pushState({ tula: "page" }, "");
+  };
+
+  const returnHome = () => {
+    setView("home");
+    const onPage = window.history.state && window.history.state.tula === "page";
+    if (onPage) window.history.back();
+  };
+
   useEffect(() => {
-    wakeServer();
+    wakeServer(); // wake the free server up as soon as the app opens
+    const onBack = () => setView("home");
+    window.addEventListener("popstate", onBack);
+    return () => window.removeEventListener("popstate", onBack);
   }, []);
 
   const goHome = (text) => {
     setNotice(text ? { type: "error", text } : null);
-    setView("home");
+    returnHome();
   };
 
   const reset = () => {
@@ -56,7 +74,7 @@ export default function App() {
     setNotice(null);
     setOcr(null);
     setNutriValues({});
-    setView("home");
+    returnHome()
   };
 
   async function handlePhoto(e) {
@@ -107,7 +125,7 @@ export default function App() {
     setNotice(null);
     setBarcode(code);
     setPending(null);
-    setView("loading");
+    go("loading");
     setSlow(false);
     const slowTimer = setTimeout(() => setSlow(true), 6000);
 
@@ -127,10 +145,10 @@ export default function App() {
       } else {
         // Product exists but has no usable ingredients or nutrition
         setPending(r.data.product);
-        setView("notfound");
+        go("notfound");
       }
     } else if (r.status === 404 && r.data && r.data.error === "NOT_FOUND") {
-      setView("notfound");
+      go("notfound");
     } else {
       goHome((r.data && r.data.message) || "Something went wrong. Please try again.");
     }
@@ -164,7 +182,7 @@ export default function App() {
         barcode,
         source: pending ? "Open Food Facts" : "ingredients",
       });
-      setView("result");
+      go("result");
     } else if (r.networkError) {
       setNotice({ type: "error", text: "Cannot reach the Tula server. Please try again." });
     } else {
@@ -187,7 +205,7 @@ export default function App() {
             <section className="card hero">
               <h1>Is it healthy?<br />Scan and find out.</h1>
               <p className="muted">Scan a packet's barcode and get an honest score from 1 to 100, with the reasons.</p>
-              <button className="btn btn-primary btn-big" onClick={() => { setNotice(null); setView("scanning"); }}>
+              <button className="btn btn-primary btn-big" onClick={() => { setNotice(null); go("scanning"); }}>
                 📷&nbsp; Scan barcode
               </button>
               <div className="divider"><span>or type the number</span></div>
