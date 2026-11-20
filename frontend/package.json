@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "html5-qrcode": "^2.3.8",
+    "barcode-detector": "^3.2.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tesseract.js": "^7.0.0"
